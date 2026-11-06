@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Visitor Management - HMS{% endblock %}
+
+{% block content %}
+<div class="card-header-bar">
+  <div>
+    <h1 style="font-size: 24px; font-weight: 700; color: #0f172a;">Hostel Visitor Entry Management</h1>
+    <p style="font-size: 14px; color: #64748b;">FR-5: Visitor check-in, purpose logging, check-out tracking, and historical logs</p>
+  </div>
+  <button class="btn btn-primary" onclick="document.getElementById('visitorModal').style.display='block'">
+    <i class="fa-solid fa-user-tag"></i> New Visitor Check-In
+  </button>
+</div>
+
+<!-- Modal for New Visitor Entry (FR-5.1) -->
+<div id="visitorModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; padding: 40px 20px;">
+  <div style="background: white; border-radius: 12px; max-width: 500px; margin: 0 auto; padding: 26px;">
+    <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Visitor Entry Log</h2>
+    <form action="/admin/visitors/add" method="POST">
+      <div class="form-group">
+        <label class="form-label">Student Visited</label>
+        <select name="student_id" class="form-select" required>
+          {% for s in students %}
+            <option value="{{ s.id }}">{{ s.student_id }} - {{ s.full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Visitor Full Name</label>
+        <input type="text" name="visitor_name" class="form-control" placeholder="e.g. S. Ramanathan" required>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Contact Number</label>
+          <input type="text" name="visitor_phone" class="form-control" placeholder="9812345678" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Relationship</label>
+          <input type="text" name="relation" class="form-control" placeholder="Father, Mother, Friend..." required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Purpose of Visit</label>
+        <textarea name="purpose" class="form-control" rows="2" placeholder="e.g. Bringing study materials" required></textarea>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('visitorModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">Record Check-In</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Search Filter (FR-5.2) -->
+<div class="content-card" style="padding: 16px 24px; margin-bottom: 20px;">
+  <form method="GET" action="/admin/visitors" style="display: flex; gap: 12px; align-items: center;">
+    <input type="text" name="search" class="form-control" placeholder="Search by visitor name, student name, or ID..." value="{{ search_term }}">
+    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+    {% if search_term %}
+      <a href="/admin/visitors" class="btn btn-secondary">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Visitor History Table -->
+<div class="content-card">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Visitor Name</th>
+          <th>Contact</th>
+          <th>Student Visited</th>
+          <th>Room</th>
+          <th>Relation</th>
+          <th>Purpose</th>
+          <th>Time In</th>
+          <th>Time Out</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in visitors %}
+        <tr>
+          <td><strong>{{ v.visitor_name }}</strong></td>
+          <td>{{ v.visitor_phone }}</td>
+          <td>
+            <strong>{{ v.student_name }}</strong><br>
+            <small style="color: #64748b;">{{ v.student_id }}</small>
+          </td>
+          <td><strong>{{ v.room_number or 'N/A' }}</strong></td>
+          <td>{{ v.relation }}</td>
+          <td>{{ v.purpose }}</td>
+          <td><small>{{ v.time_in }}</small></td>
+          <td>
+            {% if v.time_out %}
+              <small>{{ v.time_out }}</small>
+            {% else %}
+              <span class="status-badge badge-pending">Active Inside</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if not v.time_out %}
+            <form action="/admin/visitors/checkout" method="POST">
+              <input type="hidden" name="visitor_id" value="{{ v.id }}">
+              <button type="submit" class="btn btn-sm btn-secondary">Check Out</button>
+            </form>
+            {% else %}
+              <span class="status-badge badge-resolved"><i class="fa-solid fa-check"></i> Departed</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

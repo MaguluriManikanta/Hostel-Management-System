@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Room Allocation - HMS{% endblock %}
+
+{% block content %}
+<div class="card-header-bar">
+  <div>
+    <h1 style="font-size: 24px; font-weight: 700; color: #0f172a;">Hostel Admission & Room Allocation</h1>
+    <p style="font-size: 14px; color: #64748b;">FR-2: Real-time room availability, capacity enforcement, and transfer handling</p>
+  </div>
+  <div style="display: flex; gap: 10px;">
+    <button class="btn btn-secondary" onclick="document.getElementById('createRoomModal').style.display='block'">
+      <i class="fa-solid fa-plus"></i> Add New Room
+    </button>
+    <button class="btn btn-primary" onclick="document.getElementById('allocateModal').style.display='block'">
+      <i class="fa-solid fa-key"></i> Allocate Room to Student
+    </button>
+  </div>
+</div>
+
+<!-- Modal to Add New Room -->
+<div id="createRoomModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; padding: 40px 20px;">
+  <div style="background: white; border-radius: 12px; max-width: 500px; margin: 0 auto; padding: 26px;">
+    <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Add New Hostel Room</h2>
+    <form action="/admin/rooms/create" method="POST">
+      <div class="form-group">
+        <label class="form-label">Room Number</label>
+        <input type="text" name="room_number" class="form-control" placeholder="e.g. B-203" required>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Hostel Block</label>
+          <select name="block" class="form-select" required>
+            <option value="Block A">Block A</option>
+            <option value="Block B">Block B</option>
+            <option value="Block C">Block C</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Floor</label>
+          <input type="number" name="floor" class="form-control" value="1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Capacity (Beds)</label>
+          <input type="number" name="capacity" class="form-control" value="2" min="1" max="6" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Room Type</label>
+          <select name="room_type" class="form-select">
+            <option value="Double AC">Double AC</option>
+            <option value="Triple Non-AC">Triple Non-AC</option>
+            <option value="Single Deluxe">Single Deluxe</option>
+            <option value="Double Non-AC">Double Non-AC</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fee Per Semester (₹)</label>
+        <input type="number" name="fee_per_semester" class="form-control" value="45000" required>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('createRoomModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Room</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal to Allocate Room -->
+<div id="allocateModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; padding: 40px 20px;">
+  <div style="background: white; border-radius: 12px; max-width: 500px; margin: 0 auto; padding: 26px;">
+    <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Allocate Room to Student</h2>
+    <form action="/admin/rooms/allocate" method="POST">
+      <div class="form-group">
+        <label class="form-label">Select Student</label>
+        <select name="student_id" class="form-select" required>
+          {% for st in unallocated %}
+            <option value="{{ st.id }}">{{ st.student_id }} - {{ st.full_name }} ({{ st.department }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Select Room (Capacity Checked)</label>
+        <select name="room_id" class="form-select" required>
+          {% for rm in rooms %}
+            {% if rm.occupied_count < rm.capacity %}
+              <option value="{{ rm.id }}">{{ rm.room_number }} ({{ rm.block }} - {{ rm.occupied_count }}/{{ rm.capacity }} Occupied)</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('allocateModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">Allocate</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Room Grid & Availability (FR-2.2) -->
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; margin-bottom: 30px;">
+  {% for rm in rooms %}
+  <div class="content-card" style="margin-bottom: 0; padding: 18px; border-top: 4px solid {% if rm.occupied_count >= rm.capacity %}#ef4444{% else %}#0d9488{% endif %};">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <h3 style="font-size: 18px; font-weight: 700;">{{ rm.room_number }}</h3>
+      <span class="status-badge {% if rm.occupied_count >= rm.capacity %}badge-full{% else %}badge-available{% endif %}">
+        {% if rm.occupied_count >= rm.capacity %}Full{% else %}Available{% endif %}
+      </span>
+    </div>
+    <div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">
+      {{ rm.block }} · Floor {{ rm.floor }} · {{ rm.room_type }}
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+      <span>Occupancy:</span>
+      <span>{{ rm.occupied_count }} / {{ rm.capacity }} beds</span>
+    </div>
+    <!-- Capacity Bar -->
+    <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 8px;">
+      <div style="width: {{ (rm.occupied_count / rm.capacity * 100) }}%; height: 100%; background: {% if rm.occupied_count >= rm.capacity %}#ef4444{% else %}#0d9488{% endif %};"></div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Room Transfer / Reallocation Requests Table (FR-2.4) -->
+<div class="content-card">
+  <div class="card-header-bar">
+    <h2 class="card-title">Room Reallocation & Transfer Requests (FR-2.4)</h2>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Current Room</th>
+          <th>Requested Room</th>
+          <th>Reason</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if requests %}
+          {% for r in requests %}
+          <tr>
+            <td><strong>{{ r.full_name }}</strong> ({{ r.student_id }})</td>
+            <td>{{ r.current_room or 'None' }}</td>
+            <td><strong style="color: #0d9488;">{{ r.requested_room }}</strong></td>
+            <td>{{ r.reason }}</td>
+            <td>{{ r.created_at[:10] }}</td>
+            <td>
+              <span class="status-badge {% if r.status == 'Approved' %}badge-resolved{% elif r.status == 'Rejected' %}badge-full{% else %}badge-pending{% endif %}">
+                {{ r.status }}
+              </span>
+            </td>
+            <td>
+              {% if r.status == 'Pending' %}
+              <div style="display: flex; gap: 6px;">
+                <form action="/admin/rooms/request/update" method="POST" style="display:inline;">
+                  <input type="hidden" name="request_id" value="{{ r.id }}">
+                  <input type="hidden" name="action" value="approve">
+                  <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i></button>
+                </form>
+                <form action="/admin/rooms/request/update" method="POST" style="display:inline;">
+                  <input type="hidden" name="request_id" value="{{ r.id }}">
+                  <input type="hidden" name="action" value="reject">
+                  <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-xmark"></i></button>
+                </form>
+              </div>
+              {% else %}
+                <small style="color: #64748b;">Completed</small>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="7" style="text-align: center; color: #94a3b8;">No room transfer requests pending.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

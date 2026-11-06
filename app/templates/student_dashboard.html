@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Portal - Hostel Management System</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    .student-navbar {
+      background: #0d9488;
+      color: white;
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .student-container {
+      max-width: 1200px;
+      margin: 28px auto;
+      padding: 0 20px;
+    }
+    .profile-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 28px;
+    }
+    .avatar-box {
+      width: 80px;
+      height: 80px;
+      background: #ccfbf1;
+      color: #0d9488;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .tabs-nav {
+      display: flex;
+      gap: 12px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748b;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      color: #0d9488;
+      border-bottom-color: #0d9488;
+    }
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+  </style>
+</head>
+<body style="background: #f8fafc;">
+  <nav class="student-navbar">
+    <div style="display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+      <i class="fa-solid fa-hotel"></i>
+      <span>HMS Resident Student Portal</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 18px;">
+      <span>Welcome, <strong>{{ user.full_name }}</strong></span>
+      <a href="/logout" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+    </div>
+  </nav>
+
+  <div class="student-container">
+    <!-- Student Profile Overview Card -->
+    <div class="profile-card">
+      <div class="avatar-box">
+        {% if student.photo_url %}
+          <img src="{{ student.photo_url }}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+        {% else %}
+          {{ user.full_name[0] }}
+        {% endif %}
+      </div>
+      <div style="flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h1 style="font-size: 22px; font-weight: 700; color: #0f172a;">{{ user.full_name }}</h1>
+            <p style="color: #64748b; font-size: 14px;">Student ID: <strong style="color: #0d9488;">{{ student.student_id }}</strong> · {{ student.department }} (Year {{ student.year }})</p>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: 700;">Allocated Room</div>
+            <div style="font-size: 20px; font-weight: 700; color: #0f172a;">
+              {% if student.room_number %}
+                Room {{ student.room_number }} ({{ student.block }})
+              {% else %}
+                <span style="color: #f59e0b;">Pending Allocation</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats Grid -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon-box metric-icon-teal">
+          <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <div>
+          <div class="metric-label">Attendance Rate</div>
+          <div class="metric-value">{{ attendance_percent }}%</div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon-box metric-icon-yellow">
+          <i class="fa-solid fa-bell"></i>
+        </div>
+        <div>
+          <div class="metric-label">Announcements</div>
+          <div class="metric-value">{{ announcements|length }}</div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon-box metric-icon-rose">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <div class="metric-label">My Complaints</div>
+          <div class="metric-value">{{ complaints|length }}</div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon-box metric-icon-blue">
+          <i class="fa-solid fa-wallet"></i>
+        </div>
+        <div>
+          <div class="metric-label">Fee Invoices</div>
+          <div class="metric-value">{{ fees|length }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="showTab('announcements', this)"><i class="fa-solid fa-bullhorn"></i> Announcements</button>
+      <button class="tab-btn" onclick="showTab('attendance', this)"><i class="fa-solid fa-clipboard-user"></i> My Attendance</button>
+      <button class="tab-btn" onclick="showTab('complaints', this)"><i class="fa-solid fa-wrench"></i> Complaints & Maintenance</button>
+      <button class="tab-btn" onclick="showTab('fees', this)"><i class="fa-solid fa-receipt"></i> Fees & Payments</button>
+      <button class="tab-btn" onclick="showTab('transfer', this)"><i class="fa-solid fa-arrow-right-arrow-left"></i> Room Transfer</button>
+    </div>
+
+    <!-- Tab: Announcements -->
+    <div id="tab-announcements" class="tab-pane active">
+      <div class="content-card">
+        <h2 class="card-title" style="margin-bottom: 18px;">Hostel Notices & Announcements (FR-7)</h2>
+        {% for a in announcements %}
+        <div style="background: #f8fafc; border-left: 4px solid #0d9488; padding: 16px 20px; border-radius: 0 8px 8px 0; margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <strong style="font-size: 16px; color: #0f172a;">{{ a.title }}</strong>
+            <span class="status-badge {% if a.priority == 'Urgent' %}badge-full{% elif a.priority == 'High' %}badge-pending{% else %}badge-in-progress{% endif %}">
+              {{ a.priority }}
+            </span>
+          </div>
+          <p style="font-size: 14px; color: #475569; margin-bottom: 8px;">{{ a.content }}</p>
+          <small style="color: #94a3b8;"><i class="fa-regular fa-clock"></i> Posted on {{ a.created_at }}</small>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Tab: Attendance -->
+    <div id="tab-attendance" class="tab-pane">
+      <div class="content-card">
+        <h2 class="card-title" style="margin-bottom: 18px;">Personal Attendance Record (FR-4.2)</h2>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Remarks</th>
+                <th>Logged At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for at in attendance_records %}
+              <tr>
+                <td><strong>{{ at.date }}</strong></td>
+                <td>
+                  <span class="status-badge {% if at.status == 'Present' %}badge-present{% elif at.status == 'Leave' %}badge-leave{% else %}badge-absent{% endif %}">
+                    {{ at.status }}
+                  </span>
+                </td>
+                <td>{{ at.remarks or 'Regular verified' }}</td>
+                <td><small style="color: #64748b;">{{ at.timestamp }}</small></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Complaints -->
+    <div id="tab-complaints" class="tab-pane">
+      <div class="grid-2">
+        <div class="content-card">
+          <h2 class="card-title" style="margin-bottom: 18px;">My Raised Complaints (FR-6.1)</h2>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Issue</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Resolution Remarks</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in complaints %}
+                <tr>
+                  <td><span class="status-badge badge-in-progress">{{ c.category }}</span></td>
+                  <td>
+                    <strong>{{ c.title }}</strong><br>
+                    <small style="color: #64748b;">{{ c.description }}</small>
+                  </td>
+                  <td><span class="status-badge badge-pending">{{ c.priority }}</span></td>
+                  <td>
+                    <span class="status-badge {% if c.status == 'Resolved' %}badge-resolved{% elif c.status == 'In Progress' %}badge-in-progress{% else %}badge-pending{% endif %}">
+                      {{ c.status }}
+                    </span>
+                  </td>
+                  <td><small>{{ c.resolution_remarks or 'Awaiting resolution' }}</small></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <h2 class="card-title" style="margin-bottom: 18px;">Raise New Complaint</h2>
+          <form action="/student/complaint/submit" method="POST">
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select name="category" class="form-select" required>
+                <option value="Electrical">Electrical (Fan, Light, Switch)</option>
+                <option value="Plumbing">Plumbing (Water, Tap, Flush)</option>
+                <option value="Wi-Fi">Wi-Fi & Internet</option>
+                <option value="Carpentry">Carpentry (Bed, Desk, Door)</option>
+                <option value="Cleanliness">Cleanliness & Hygiene</option>
+                <option value="Other">Other Issues</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Issue Summary</label>
+              <input type="text" name="title" class="form-control" placeholder="e.g. Washroom tap leaking" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Detailed Description</label>
+              <textarea name="description" class="form-control" rows="3" placeholder="Provide details regarding the problem..." required></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Urgency Priority</label>
+              <select name="priority" class="form-select">
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+              <i class="fa-solid fa-paper-plane"></i> Submit Complaint
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Fees -->
+    <div id="tab-fees" class="tab-pane">
+      <div class="content-card">
+        <h2 class="card-title" style="margin-bottom: 18px;">Hostel Fee Invoices & Payment</h2>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Semester</th>
+              <th>Total Amount</th>
+              <th>Amount Paid</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Payment Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in fees %}
+            <tr>
+              <td><strong>{{ f.semester }}</strong></td>
+              <td>₹{{ "{:,.2f}".format(f.total_amount) }}</td>
+              <td>₹{{ "{:,.2f}".format(f.paid_amount) }}</td>
+              <td>{{ f.due_date }}</td>
+              <td>
+                <span class="status-badge {% if f.status == 'Paid' %}badge-paid{% else %}badge-pending{% endif %}">
+                  {{ f.status }}
+                </span>
+              </td>
+              <td>
+                {% if f.status != 'Paid' %}
+                <form action="/student/fee/pay" method="POST">
+                  <input type="hidden" name="fee_id" value="{{ f.id }}">
+                  <button type="submit" class="btn btn-success btn-sm">
+                    <i class="fa-solid fa-credit-card"></i> Pay Online
+                  </button>
+                </form>
+                {% else %}
+                  <span style="font-size: 13px; color: #059669;"><i class="fa-solid fa-circle-check"></i> Paid ({{ f.transaction_id }})</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: Room Transfer -->
+    <div id="tab-transfer" class="tab-pane">
+      <div class="grid-2">
+        <div class="content-card">
+          <h2 class="card-title" style="margin-bottom: 18px;">My Room Transfer Requests (FR-2.4)</h2>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Requested Room</th>
+                <th>Reason</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for tr in transfer_requests %}
+              <tr>
+                <td><strong>{{ tr.requested_room_number }}</strong></td>
+                <td>{{ tr.reason }}</td>
+                <td>{{ tr.created_at[:10] }}</td>
+                <td>
+                  <span class="status-badge {% if tr.status == 'Approved' %}badge-resolved{% elif tr.status == 'Rejected' %}badge-full{% else %}badge-pending{% endif %}">
+                    {{ tr.status }}
+                  </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="content-card">
+          <h2 class="card-title" style="margin-bottom: 18px;">Request Room Change</h2>
+          <form action="/student/room/request" method="POST">
+            <div class="form-group">
+              <label class="form-label">Target Room to Shift Into</label>
+              <select name="requested_room_id" class="form-select" required>
+                {% for ar in available_rooms %}
+                  <option value="{{ ar.id }}">{{ ar.room_number }} ({{ ar.block }} - {{ ar.room_type }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Justification / Reason</label>
+              <textarea name="reason" class="form-control" rows="3" placeholder="Explain reason for reallocation request..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+              <i class="fa-solid fa-arrows-split-up-and-left"></i> Submit Reallocation Request
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tabName, btn) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tabName).classList.add('active');
+      btn.classList.add('active');
+    }
+  </script>
+</body>
+</html>

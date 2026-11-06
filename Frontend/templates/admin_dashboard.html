@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - HMS{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+  <h1 style="font-size: 24px; font-weight: 700; color: #0f172a;">Dashboard Overview</h1>
+  <p style="font-size: 14px; color: #64748b;">Hostel operations, room occupancy, and student welfare summary</p>
+</div>
+
+<!-- Metrics Cards matching Fig 6.2 -->
+<div class="metrics-grid">
+  <!-- Total Students -->
+  <div class="metric-card">
+    <div class="metric-icon-box metric-icon-yellow">
+      <i class="fa-solid fa-graduation-cap"></i>
+    </div>
+    <div>
+      <div class="metric-label">Total Students</div>
+      <div class="metric-value">{{ total_students }}</div>
+    </div>
+  </div>
+
+  <!-- Rooms Occupied -->
+  <div class="metric-card">
+    <div class="metric-icon-box metric-icon-teal">
+      <i class="fa-solid fa-bed"></i>
+    </div>
+    <div>
+      <div class="metric-label">Rooms Occupied</div>
+      <div class="metric-value">{{ rooms_occupied }}</div>
+    </div>
+  </div>
+
+  <!-- Fees Pending -->
+  <div class="metric-card">
+    <div class="metric-icon-box metric-icon-rose">
+      <i class="fa-solid fa-file-invoice-dollar"></i>
+    </div>
+    <div>
+      <div class="metric-label">Fees Pending</div>
+      <div class="metric-value">{{ fees_pending }}</div>
+    </div>
+  </div>
+
+  <!-- Complaints -->
+  <div class="metric-card">
+    <div class="metric-icon-box metric-icon-blue">
+      <i class="fa-solid fa-circle-exclamation"></i>
+    </div>
+    <div>
+      <div class="metric-label">Complaints</div>
+      <div class="metric-value">{{ complaints_count }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Recent Complaints Table matching Fig 6.2 -->
+  <div class="content-card">
+    <div class="card-header-bar">
+      <h2 class="card-title">Recent Complaints</h2>
+      <a href="/admin/complaints" class="btn btn-secondary btn-sm">View All</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>STUDENT</th>
+            <th>ISSUE</th>
+            <th>STATUS</th>
+            <th>DATE</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for complaint in recent_complaints %}
+          <tr>
+            <td style="font-weight: 600;">{{ complaint.student_name }}</td>
+            <td>{{ complaint.issue }} <small style="color: #64748b;">({{ complaint.category }})</small></td>
+            <td>
+              {% if complaint.status == 'Pending' %}
+                <span class="status-badge badge-pending">Pending</span>
+              {% elif complaint.status == 'In Progress' %}
+                <span class="status-badge badge-in-progress">In Progress</span>
+              {% else %}
+                <span class="status-badge badge-resolved">Resolved</span>
+              {% endif %}
+            </td>
+            <td>{{ complaint.created_at[:10] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Announcements Broadcast (FR-7) -->
+  <div class="content-card">
+    <div class="card-header-bar">
+      <h2 class="card-title">Broadcast Announcement</h2>
+    </div>
+    
+    <form action="/admin/announcements/broadcast" method="POST">
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label class="form-label" style="font-size: 11px;">Announcement Title</label>
+        <input type="text" name="title" class="form-control" placeholder="e.g. Hostel Inspection Notice" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label class="form-label" style="font-size: 11px;">Target Audience & Priority</label>
+        <div style="display: flex; gap: 8px;">
+          <select name="target_role" class="form-select" style="flex: 1;">
+            <option value="all">All Residents</option>
+            <option value="student">Students Only</option>
+            <option value="warden">Wardens Only</option>
+          </select>
+          <select name="priority" class="form-select" style="width: 110px;">
+            <option value="Normal">Normal</option>
+            <option value="High">High</option>
+            <option value="Urgent">Urgent</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label class="form-label" style="font-size: 11px;">Message Content</label>
+        <textarea name="content" class="form-control" rows="3" placeholder="Enter notice details..." required></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%;">
+        <i class="fa-solid fa-bullhorn"></i> Send Announcement
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

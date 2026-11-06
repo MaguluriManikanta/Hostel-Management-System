@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Hostel Management System{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    .icon { display: inline-block; font-style: normal; margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <!-- Header Bar matching Fig 6.2 -->
+  <header class="app-header">
+    <div class="header-brand">
+      <span class="header-brand-icon">✓</span>
+      <span>HMS Admin Panel</span>
+    </div>
+    <div class="header-user-menu">
+      <span style="font-size: 14px; font-weight: 500;">{{ user.full_name }} ({{ user.role | capitalize }})</span>
+      <div class="header-avatar">{{ user.full_name[0] }}</div>
+      <a href="/logout" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </div>
+  </header>
+
+  <!-- Sidebar matching Fig 6.2 -->
+  <aside class="app-sidebar">
+    <ul class="sidebar-menu">
+      <li class="sidebar-item">
+        <a href="/admin/dashboard" class="sidebar-link {% if active_page == 'dashboard' %}active{% endif %}">
+          <i class="fa-solid fa-gauge sidebar-icon"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      {% if user.role in ['admin'] %}
+      <li class="sidebar-item">
+        <a href="/admin/students" class="sidebar-link {% if active_page == 'students' %}active{% endif %}">
+          <i class="fa-solid fa-user-graduate sidebar-icon"></i>
+          <span>Students</span>
+        </a>
+      </li>
+      <li class="sidebar-item">
+        <a href="/admin/rooms" class="sidebar-link {% if active_page == 'rooms' %}active{% endif %}">
+          <i class="fa-solid fa-door-open sidebar-icon"></i>
+          <span>Room Allocation</span>
+        </a>
+      </li>
+      <li class="sidebar-item">
+        <a href="/admin/fees" class="sidebar-link {% if active_page == 'fees' %}active{% endif %}">
+          <i class="fa-solid fa-receipt sidebar-icon"></i>
+          <span>Fee Management</span>
+        </a>
+      </li>
+      {% endif %}
+      <li class="sidebar-item">
+        <a href="/admin/attendance" class="sidebar-link {% if active_page == 'attendance' %}active{% endif %}">
+          <i class="fa-solid fa-clipboard-user sidebar-icon"></i>
+          <span>Attendance</span>
+        </a>
+      </li>
+      <li class="sidebar-item">
+        <a href="/admin/complaints" class="sidebar-link {% if active_page == 'complaints' %}active{% endif %}">
+          <i class="fa-solid fa-triangle-exclamation sidebar-icon"></i>
+          <span>Complaints</span>
+        </a>
+      </li>
+      <li class="sidebar-item">
+        <a href="/admin/visitors" class="sidebar-link {% if active_page == 'visitors' %}active{% endif %}">
+          <i class="fa-solid fa-address-book sidebar-icon"></i>
+          <span>Visitor Log</span>
+        </a>
+      </li>
+      {% if user.role in ['admin'] %}
+      <li class="sidebar-item">
+        <a href="/admin/reports" class="sidebar-link {% if active_page == 'reports' %}active{% endif %}">
+          <i class="fa-solid fa-chart-line sidebar-icon"></i>
+          <span>Reports</span>
+        </a>
+      </li>
+      <li class="sidebar-item">
+        <a href="/admin/audit-logs" class="sidebar-link {% if active_page == 'audit' %}active{% endif %}">
+          <i class="fa-solid fa-shield-halved sidebar-icon"></i>
+          <span>Audit Trail</span>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

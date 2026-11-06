@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Reports & Analytics - HMS{% endblock %}
+
+{% block content %}
+<div class="card-header-bar">
+  <div>
+    <h1 style="font-size: 24px; font-weight: 700; color: #0f172a;">Reports & Analytics</h1>
+    <p style="font-size: 14px; color: #64748b;">FR-9: Hostel room occupancy, fee collections, and maintenance analytics</p>
+  </div>
+  <div style="display: flex; gap: 10px;">
+    <a href="/admin/reports/export/occupancy" class="btn btn-primary">
+      <i class="fa-solid fa-file-arrow-down"></i> Export Occupancy CSV
+    </a>
+    <a href="/admin/reports/export/fees" class="btn btn-secondary">
+      <i class="fa-solid fa-file-arrow-down"></i> Export Fees CSV
+    </a>
+  </div>
+</div>
+
+<div class="metrics-grid">
+  <!-- Room Occupancy Card -->
+  <div class="content-card" style="margin-bottom: 0;">
+    <h2 class="card-title" style="margin-bottom: 14px;">Block-wise Occupancy</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Block</th>
+          <th>Total Rooms</th>
+          <th>Total Capacity</th>
+          <th>Current Residents</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in room_stats %}
+        <tr>
+          <td><strong>{{ b.block }}</strong></td>
+          <td>{{ b.total_rooms }}</td>
+          <td>{{ b.capacity }} beds</td>
+          <td><strong style="color: #0d9488;">{{ b.occupied or 0 }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Fee Collection Card -->
+  <div class="content-card" style="margin-bottom: 0;">
+    <h2 class="card-title" style="margin-bottom: 14px;">Fee Payment Metrics</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Count</th>
+          <th>Total Invoiced</th>
+          <th>Collected</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in fee_stats %}
+        <tr>
+          <td>
+            <span class="status-badge {% if f.status == 'Paid' %}badge-paid{% elif f.status == 'Partial' %}badge-in-progress{% else %}badge-pending{% endif %}">
+              {{ f.status }}
+            </span>
+          </td>
+          <td>{{ f.count }}</td>
+          <td>₹{{ "{:,.2f}".format(f.total_val) }}</td>
+          <td><strong>₹{{ "{:,.2f}".format(f.collected_val or 0) }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="content-card" style="margin-top: 24px;">
+  <h2 class="card-title" style="margin-bottom: 14px;">Maintenance & Complaints Breakdown</h2>
+  <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+    {% for c in complaint_stats %}
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 22px; flex: 1; min-width: 140px; text-align: center;">
+      <div style="font-size: 13px; color: #64748b; font-weight: 600;">{{ c.category }}</div>
+      <div style="font-size: 24px; font-weight: 700; color: #0d9488; margin-top: 4px;">{{ c.count }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

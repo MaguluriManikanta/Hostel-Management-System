@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hostel Management System - Login</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="login-body">
+  <div class="login-card">
+    <!-- Fig 6.1: Circular Teal Check Icon -->
+    <div class="login-icon-wrapper">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    
+    <h1 class="login-title">Welcome Back</h1>
+    <p class="login-subtitle">Sign in to manage your hostel</p>
+
+    {% if error %}
+    <div style="background-color: #fee2e2; color: #dc2626; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; text-align: left;">
+      <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    <form action="/login" method="POST">
+      <!-- Role Selection matching Fig 6.1 -->
+      <div class="form-group">
+        <label class="form-label" for="role">LOGIN AS</label>
+        <select class="form-select" id="role" name="role" required>
+          <option value="student" {% if preset_role == 'student' %}selected{% endif %}>Student</option>
+          <option value="admin" {% if preset_role == 'admin' %}selected{% endif %}>Administrator</option>
+          <option value="warden" {% if preset_role == 'warden' %}selected{% endif %}>Warden</option>
+          <option value="staff" {% if preset_role == 'staff' %}selected{% endif %}>Hostel Staff</option>
+        </select>
+      </div>
+
+      <!-- User ID input matching Fig 6.1 -->
+      <div class="form-group">
+        <label class="form-label" for="username">USER ID</label>
+        <input type="text" class="form-control" id="username" name="username" placeholder="e.g. HS2026042" value="{{ preset_username or '' }}" required>
+      </div>
+
+      <!-- Password input matching Fig 6.1 -->
+      <div class="form-group">
+        <label class="form-label" for="password">PASSWORD</label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+      </div>
+
+      <!-- Submit button matching Fig 6.1 -->
+      <button type="submit" class="btn-signin">SIGN IN</button>
+    </form>
+
+    <!-- Illustrative wireframe watermark note matching Fig 6.1 -->
+    <div style="margin-top: 18px; font-size: 11px; color: #94a3b8; font-style: italic;">
+      Hostel Management System · Secure Authentication Gateway
+    </div>
+
+    <!-- Quick Credentials Helper -->
+    <div class="login-demo-creds">
+      <strong>Demo Accounts:</strong><br>
+      • Admin: <code>admin</code> / <code>admin123</code><br>
+      • Student: <code>HS2026042</code> / <code>student123</code><br>
+      • Warden: <code>warden</code> / <code>warden123</code><br>
+      • Staff: <code>staff</code> / <code>staff123</code>
+    </div>
+  </div>
+</body>
+</html>

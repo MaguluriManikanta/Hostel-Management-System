@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Trail - HMS{% endblock %}
+
+{% block content %}
+<div class="card-header-bar">
+  <div>
+    <h1 style="font-size: 24px; font-weight: 700; color: #0f172a;">System Audit Trail</h1>
+    <p style="font-size: 14px; color: #64748b;">FR-8.3: Immutable chronological event logs for security and compliance audits</p>
+  </div>
+</div>
+
+<div class="content-card">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Timestamp</th>
+          <th>Username</th>
+          <th>Action Type</th>
+          <th>Details</th>
+          <th>Client IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in logs %}
+        <tr>
+          <td>#{{ l.id }}</td>
+          <td><code>{{ l.timestamp }}</code></td>
+          <td><strong>{{ l.username }}</strong></td>
+          <td>
+            <span class="status-badge {% if 'FAIL' in l.action or 'DELETE' in l.action %}badge-full{% else %}badge-in-progress{% endif %}">
+              {{ l.action }}
+            </span>
+          </td>
+          <td>{{ l.details }}</td>
+          <td><code>{{ l.ip_address }}</code></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

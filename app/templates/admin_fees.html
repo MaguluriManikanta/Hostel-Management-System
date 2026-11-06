@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Fee Management - HMS{% endblock %}
+
+{% block content %}
+<div class="card-header-bar">
+  <div>
+    <h1 style="font-size: 24px; font-weight: 700; color: #0f172a;">Hostel Fee Management</h1>
+    <p style="font-size: 14px; color: #64748b;">Fee collection tracking, invoices, and payment status records</p>
+  </div>
+  <a href="/admin/reports/export/fees" class="btn btn-secondary">
+    <i class="fa-solid fa-file-csv"></i> Export Fee Ledger (CSV)
+  </a>
+</div>
+
+<div class="content-card">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Student ID</th>
+          <th>Student Name</th>
+          <th>Room</th>
+          <th>Semester</th>
+          <th>Total Fee</th>
+          <th>Amount Paid</th>
+          <th>Status</th>
+          <th>Due Date</th>
+          <th>Transaction ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in fees %}
+        <tr>
+          <td><strong style="color: #0d9488;">{{ f.student_id }}</strong></td>
+          <td><strong>{{ f.full_name }}</strong></td>
+          <td>{{ f.room_number or 'N/A' }}</td>
+          <td>{{ f.semester }}</td>
+          <td>₹{{ "{:,.2f}".format(f.total_amount) }}</td>
+          <td>₹{{ "{:,.2f}".format(f.paid_amount) }}</td>
+          <td>
+            {% if f.status == 'Paid' %}
+              <span class="status-badge badge-paid">Paid</span>
+            {% elif f.status == 'Partial' %}
+              <span class="status-badge badge-in-progress">Partial</span>
+            {% else %}
+              <span class="status-badge badge-pending">Pending</span>
+            {% endif %}
+          </td>
+          <td>{{ f.due_date }}</td>
+          <td><code>{{ f.transaction_id or '—' }}</code></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

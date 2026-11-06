@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Complaints & Maintenance - HMS{% endblock %}
+
+{% block content %}
+<div class="card-header-bar">
+  <div>
+    <h1 style="font-size: 24px; font-weight: 700; color: #0f172a;">Complaints & Maintenance Handling</h1>
+    <p style="font-size: 14px; color: #64748b;">FR-6: Track, assign, and resolve student maintenance issues</p>
+  </div>
+</div>
+
+<div class="content-card">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Student</th>
+          <th>Room</th>
+          <th>Category</th>
+          <th>Title & Description</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in complaints %}
+        <tr>
+          <td><strong>#{{ c.id }}</strong></td>
+          <td>
+            <strong>{{ c.full_name }}</strong><br>
+            <small style="color: #64748b;">{{ c.student_id }}</small>
+          </td>
+          <td><strong>{{ c.room_number or 'N/A' }}</strong></td>
+          <td><span class="status-badge badge-in-progress">{{ c.category }}</span></td>
+          <td style="max-width: 280px;">
+            <div style="font-weight: 600;">{{ c.title }}</div>
+            <div style="font-size: 13px; color: #475569;">{{ c.description }}</div>
+            {% if c.resolution_remarks %}
+              <div style="font-size: 12px; color: #059669; margin-top: 4px;">
+                <i class="fa-solid fa-wrench"></i> <em>{{ c.resolution_remarks }}</em>
+              </div>
+            {% endif %}
+          </td>
+          <td>
+            <span class="status-badge {% if c.priority == 'High' %}badge-full{% elif c.priority == 'Medium' %}badge-pending{% else %}badge-available{% endif %}">
+              {{ c.priority }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge {% if c.status == 'Resolved' %}badge-resolved{% elif c.status == 'In Progress' %}badge-in-progress{% else %}badge-pending{% endif %}">
+              {{ c.status }}
+            </span>
+          </td>
+          <td>
+            <form action="/admin/complaints/update" method="POST" style="display: flex; gap: 6px; align-items: center;">
+              <input type="hidden" name="complaint_id" value="{{ c.id }}">
+              <select name="status" class="form-select" style="padding: 4px 8px; font-size: 12px; width: 110px;">
+                <option value="Pending" {% if c.status == 'Pending' %}selected{% endif %}>Pending</option>
+                <option value="In Progress" {% if c.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                <option value="Resolved" {% if c.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+              </select>
+              <input type="text" name="resolution_remarks" placeholder="Notes..." class="form-control" style="padding: 4px 8px; font-size: 12px; width: 110px;" value="{{ c.resolution_remarks or '' }}">
+              <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Management - HMS{% endblock %}
+
+{% block content %}
+<div class="card-header-bar">
+  <div>
+    <h1 style="font-size: 24px; font-weight: 700; color: #0f172a;">Daily Attendance Management</h1>
+    <p style="font-size: 14px; color: #64748b;">FR-4: Daily student attendance tracking, warden logging, and reports</p>
+  </div>
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <form method="GET" action="/admin/attendance" style="display: flex; gap: 8px;">
+      <input type="date" name="selected_date" class="form-control" value="{{ selected_date }}" style="width: 170px;">
+      <button type="submit" class="btn btn-secondary">Filter Date</button>
+    </form>
+    <a href="/admin/reports/export/attendance" class="btn btn-primary">
+      <i class="fa-solid fa-file-csv"></i> Export
+    </a>
+  </div>
+</div>
+
+<div class="content-card">
+  <div class="card-header-bar">
+    <h2 class="card-title">Roll Call for {{ selected_date }}</h2>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Room</th>
+          <th>Student ID</th>
+          <th>Student Name</th>
+          <th>Attendance Status</th>
+          <th>Remarks</th>
+          <th>Quick Mark (FR-4.1)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td><strong>{{ r.room_number or 'Unallocated' }}</strong></td>
+          <td><strong style="color: #0d9488;">{{ r.student_id }}</strong></td>
+          <td>{{ r.full_name }}</td>
+          <td>
+            {% if r.attendance_status == 'Present' %}
+              <span class="status-badge badge-present"><i class="fa-solid fa-check"></i> Present</span>
+            {% elif r.attendance_status == 'Absent' %}
+              <span class="status-badge badge-absent"><i class="fa-solid fa-xmark"></i> Absent</span>
+            {% elif r.attendance_status == 'Leave' %}
+              <span class="status-badge badge-leave"><i class="fa-solid fa-calendar-day"></i> Leave</span>
+            {% else %}
+              <span class="status-badge badge-pending">Unmarked</span>
+            {% endif %}
+          </td>
+          <td><small style="color: #64748b;">{{ r.remarks or '—' }}</small></td>
+          <td>
+            <div style="display: flex; gap: 6px;">
+              <form action="/admin/attendance/mark" method="POST" style="display: inline;">
+                <input type="hidden" name="student_id" value="{{ r.student_db_id }}">
+                <input type="hidden" name="att_date" value="{{ selected_date }}">
+                <input type="hidden" name="status" value="Present">
+                <input type="hidden" name="remarks" value="Verified present">
+                <button type="submit" class="btn btn-sm btn-success" title="Mark Present">P</button>
+              </form>
+              <form action="/admin/attendance/mark" method="POST" style="display: inline;">
+                <input type="hidden" name="student_id" value="{{ r.student_db_id }}">
+                <input type="hidden" name="att_date" value="{{ selected_date }}">
+                <input type="hidden" name="status" value="Absent">
+                <input type="hidden" name="remarks" value="Uninformed absence">
+                <button type="submit" class="btn btn-sm btn-danger" title="Mark Absent">A</button>
+              </form>
+              <form action="/admin/attendance/mark" method="POST" style="display: inline;">
+                <input type="hidden" name="student_id" value="{{ r.student_db_id }}">
+                <input type="hidden" name="att_date" value="{{ selected_date }}">
+                <input type="hidden" name="status" value="Leave">
+                <input type="hidden" name="remarks" value="Leave request sanctioned">
+                <button type="submit" class="btn btn-sm btn-secondary" title="Mark Leave">L</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
